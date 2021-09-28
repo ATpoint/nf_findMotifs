@@ -19,12 +19,12 @@ The command takes as only mandatory params a fasta file with target sequences (e
 ```nextflow
 
 #/ run the example data in the test folder:
-nextflow run main.nf -profile test,docker --species mouse`
+nextflow run main.nf -profile test,docker --species mouse
 
 #/ or provide targets and background:
 nextflow run main.nf -profile test,docker \
     --targets $(realpath path/to/targets.bed) --background $(realpath path/to/bg.bed) \
-    --species mouse \
+    --species mouse
 
 ```
 
