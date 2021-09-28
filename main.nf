@@ -14,16 +14,12 @@ params.targets    = ''
 params.background = ''
 params.species    = 'mouse'
 params.threads    = 1
-params.mem        = 1.GB
+params.mem        = 8.GB
 params.outdir     = "./"
 params.additional = ''
 
 
 // --------------------------------------------------------------------------------------------------------------------
-
-// input fasta files:
-targets    = Channel.fromPath(params.targets, checkIfExists: true)
-background = Channel.fromPath(params.background, checkIfExists: true)
 
 // download HOCOMOCO reference motifs for mouse or human:
 if(params.species == "mouse"){
@@ -37,7 +33,20 @@ if(params.species == "mouse"){
     }
 }
 
+// Input data:
+foreground  = Channel
+                .fromPath(params.targets, checkIfExists: true)
+
+background  = Channel
+                .fromPath(params.background, checkIfExists: true)
+
+
 process DownloadMotifs {
+
+    cpus 1
+    memory 1.GB
+
+    publishDir params.outdir, mode: 'move'
 
     input:
     val(url)
@@ -61,21 +70,21 @@ process findMotifs {
     publishDir params.outdir, mode: 'move'
 
     input:
-    path(input_fa)
-    path(background_fa)
+    path(foreground)
+    path(background)
     path(motifs_reference)
 
     output:
     path(foldername)
 
     script:
-    n1 = [input_fa].join("").split("\\.")[0]
-    n2 = [background_fa].join("").split("\\.")[0]
+    n1 = [foreground].join("").split("\\.")[0]
+    n2 = [background].join("").split("\\.")[0]
     foldername = [n1, n2].join('__vs__')
-
+    
     """
     findMotifs.pl \
-        $input_fa fasta $foldername -fasta $background_fa \
+        $foreground fasta $foldername -fasta $background \
         -mcheck $motifs_reference -mknown $motifs_reference \
         -p $task.cpus $params.additional
     """
@@ -86,7 +95,7 @@ workflow MotifScan {
 
     DownloadMotifs(url_motif)
 
-    findMotifs(targets, background, DownloadMotifs.out.downloaded)
+    findMotifs(foreground, params.background, DownloadMotifs.out.downloaded)
 
 }
 
