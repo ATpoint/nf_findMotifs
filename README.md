@@ -23,7 +23,7 @@ nextflow run main.nf -profile test,docker --species mouse
 
 #/ or provide targets and background:
 nextflow run main.nf -profile test,docker \
-    --targets $(realpath path/to/targets.bed) --background $(realpath path/to/bg.bed) \
+    --targets $(realpath path/to/targets.fa) --background $(realpath path/to/bg.fa) \
     --species mouse
 
 ```
