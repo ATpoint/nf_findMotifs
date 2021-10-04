@@ -37,6 +37,7 @@ if(params.species == "mouse"){
 foreground  = Channel
                 .fromPath(params.targets, checkIfExists: true)
 
+// check if exists:
 background  = Channel
                 .fromPath(params.background, checkIfExists: true)
 
@@ -46,13 +47,13 @@ process DownloadMotifs {
     cpus 1
     memory 1.GB
 
-    publishDir params.outdir, mode: 'move'
+    publishDir params.outdir, mode: 'copy'
 
     input:
     val(url)
 
     output:
-    path("*.motif"), emit: downloaded
+    path("*.motif"), emit: motifs
 
     script:
     """
@@ -95,7 +96,7 @@ workflow MotifScan {
 
     DownloadMotifs(url_motif)
 
-    findMotifs(foreground, params.background, DownloadMotifs.out.downloaded)
+    findMotifs(foreground, params.background, DownloadMotifs.out.motifs)
 
 }
 
