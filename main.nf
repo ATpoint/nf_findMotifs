@@ -63,7 +63,7 @@ process DownloadMotifs {
 
 process findMotifs {
 
-    tag "$foreground"
+    tag "$input_fa"
 
     cpus   params.threads
     memory params.mem
