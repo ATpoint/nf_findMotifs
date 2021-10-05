@@ -12,19 +12,22 @@ Homer `findMotifs.pl` via Nextflow. That's all.
 
 <br>
 
-The command takes as only mandatory params a fasta file with target sequences (e.g. ChIP-seq peaks that are differential) and a fasta file with backgrounds (e.g. all peaks) and then runs the `findMotifs.pl` script from [Homer](http://homer.ucsd.edu/homer/motif/) to scan for enriched motifs. We hardcoded two reference sets of motifs to compare found motifs against which are the HOCOMOCO v11 sets for mouse and human. These can be specified via `--species mouse/human`. 
+Scan for motif enrichment between two fasta files using `findMotifs.pl` script from [Homer](http://homer.ucsd.edu/homer/motif/).
+There are two options available via `--mode matched/single`:
+
+- **matched** means the user is supposed to provide pairs of fasta files, so each target file has its own background. It is expected that the files have proper names, so e.g. `set1_target.fa` and `set1_background.fa` which can be matched after stripping a unique delimiter, controlled by `--split_at` (default `_`). 
+- **single** means that all target fasta files in `--target` will be compared to a single fasta in `--background`.
+
+There are two hardcoded options for the motif file itself (in Homer format) via `--species houman/mouse` which then pulls from HOCOMOCO the motif files to compare enriched motifs against for identification.
 
 **Example:**
 
 ```nextflow
 
 #/ run the example data in the test folder:
-nextflow run main.nf -profile test,docker --species mouse
+nextflow run main.nf -profile test_single,docker --species mouse
+nextflow run main.nf -profile test_matched,docker --species mouse
 
-#/ or provide targets and background:
-nextflow run main.nf -profile test,docker \
-    --targets $(realpath path/to/targets.fa) --background $(realpath path/to/bg.fa) \
-    --species mouse
 
 ```
 
