@@ -10,13 +10,16 @@ nextflow.enable.dsl=2
 
 // --------------------------------------------------------------------------------------------------------------------
 
-params.targets    = ''
-params.background = ''
-params.species    = 'mouse'
-params.threads    = 1
+params.target     = ''        // path to the foreground fasta files
+params.background = ''        // path to background fasta file(s). 
+params.species    = 'mouse'   // species, will then download mouse or human hocomoco Homer files
+params.threads    = 1   
 params.mem        = 8.GB
 params.outdir     = "./"
-params.additional = ''
+params.additional = ''        // additional params for findMotifs.pl
+params.split_at   = '_'       // unique delimiter of input files to get basenames from, must be same between 
+                              // fore(background in case of --mode matched
+params.mode       = 'matched' // mode, either matched or single
 
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -33,13 +36,33 @@ if(params.species == "mouse"){
     }
 }
 
-// Input data:
-foreground  = Channel
-                .fromPath(params.targets, checkIfExists: true)
+// CASE 1: Each foreground has a matched background:
+if(params.mode=="matched"){
 
-// check if exists:
-background  = Channel
-                .fromPath(params.background, checkIfExists: true)
+    foreground  = Channel
+                    .fromPath(params.target, checkIfExists: true)
+                    .map { file -> tuple(file.baseName.split(params.split_at)[0], file) }
+
+    background  = Channel
+                    .fromPath(params.background, checkIfExists: true)
+                    .map { file -> tuple(file.baseName.split(params.split_at)[0], file) }
+
+    joined = foreground.join(background)
+}
+
+// CASE 2: Each foreground is to be run against the same background:
+if(params.mode=="single"){
+
+    foreground  = Channel
+                    .fromPath(params.target, checkIfExists: true)
+                    .map { file -> tuple(file.baseName.split(params.split_at)[0], file) }
+
+    background  = Channel
+                    .fromPath(params.background, checkIfExists: true)
+
+    joined = foreground.combine(background)         
+
+}
 
 
 process DownloadMotifs {
@@ -63,7 +86,7 @@ process DownloadMotifs {
 
 process findMotifs {
 
-    tag "$foreground"
+    tag "$sample_id"
 
     cpus   params.threads
     memory params.mem
@@ -71,8 +94,7 @@ process findMotifs {
     publishDir params.outdir, mode: 'move'
 
     input:
-    path(foreground)
-    path(background)
+    tuple val(sample_id), path(foreground), path(background)
     path(motifs_reference)
 
     output:
@@ -96,7 +118,7 @@ workflow MotifScan {
 
     DownloadMotifs(url_motif)
 
-    findMotifs(foreground, params.background, DownloadMotifs.out.motifs)
+    findMotifs(joined, DownloadMotifs.out.motifs)
 
 }
 
