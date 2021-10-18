@@ -1,30 +1,26 @@
 #! /usr/bin/env nextflow
 
-//
-// Scan fasta files for motif enrichments
-//
-
-// --------------------------------------------------------------------------------------------------------------------
-
 nextflow.enable.dsl=2
 
-// --------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------
 
-params.target     = ''        // path to the foreground fasta files
-params.background = ''        // path to background fasta file(s). 
-params.species    = 'mouse'   // species, will then download mouse or human hocomoco Homer files
-params.threads    = 1   
-params.mem        = 8.GB
-params.outdir     = "./"
-params.additional = ''        // additional params for findMotifs.pl
-params.split_at   = '_'       // unique delimiter of input files to get basenames from, must be same between 
-                              // fore(background in case of --mode matched
-params.mode       = 'matched' // mode, either matched or single
+// A pipeline to wrap Homer findMotifs.pl
 
+//-----------------------------------------------------------------------
 
-// --------------------------------------------------------------------------------------------------------------------
+// Check for the required nextflow version,
+// print an introduction message summarizing workflow parameters
+// and then validate the params, print summary of all valid params.
+// That is all part of validateParams()
 
-// download HOCOMOCO reference motifs for mouse or human:
+include { validateParams } from './functions/functions'
+validateParams()
+
+//-----------------------------------------------------------------------
+
+// download HOCOMOCO reference motifs for mouse or human depending on hardcoded params.species
+include { downloadMotifs } from './modules/download_motifs'
+
 if(params.species == "mouse"){
     url_motif = "https://hocomoco11.autosome.ru/final_bundle/hocomoco11/core/MOUSE/mono/HOCOMOCOv11_core_MOUSE_mono_homer_format_0.0005.motif"
 } else {
@@ -36,7 +32,11 @@ if(params.species == "mouse"){
     }
 }
 
-// CASE 1: Each foreground has a matched background:
+// --------------------------------------------------------------------------------------------------------------------
+
+include { findMotifs } from './modules/find_motifs'
+
+// CASE 1: Each foreground fasta file has a matched background:
 if(params.mode=="matched"){
 
     foreground  = Channel
@@ -50,7 +50,7 @@ if(params.mode=="matched"){
     joined = foreground.join(background)
 }
 
-// CASE 2: Each foreground is to be run against the same background:
+// CASE 2: Each foreground fasta has the same background:
 if(params.mode=="single"){
 
     foreground  = Channel
@@ -64,61 +64,14 @@ if(params.mode=="single"){
 
 }
 
+// --------------------------------------------------------------------------------------------------------------------
 
-process DownloadMotifs {
-
-    cpus 1
-    memory 1.GB
-
-    publishDir params.outdir, mode: 'copy'
-
-    input:
-    val(url)
-
-    output:
-    path("*.motif"), emit: motifs
-
-    script:
-    """
-    wget -q $url
-    """
-}
-
-process findMotifs {
-
-    tag "$sample_id"
-
-    cpus   params.threads
-    memory params.mem
-
-    publishDir params.outdir, mode: 'move'
-
-    input:
-    tuple val(sample_id), path(foreground), path(background)
-    path(motifs_reference)
-
-    output:
-    path(foldername)
-
-    script:
-    n1 = [foreground].join("").split("\\.")[0]
-    n2 = [background].join("").split("\\.")[0]
-    foldername = [n1, n2].join('__vs__')
-    
-    """
-    findMotifs.pl \
-        $foreground fasta $foldername -fasta $background \
-        -mcheck $motifs_reference -mknown $motifs_reference \
-        -p $task.cpus $params.additional
-    """
-
-}
-
+// define and execute the workflow:
 workflow MotifScan {
 
-    DownloadMotifs(url_motif)
+    downloadMotifs(url_motif)
 
-    findMotifs(joined, DownloadMotifs.out.motifs)
+    findMotifs(joined, downloadMotifs.out.motifs)
 
 }
 
