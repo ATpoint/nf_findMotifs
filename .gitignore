@@ -1,8 +1,5 @@
-.DS_*
 work
 .nextflow*
-*_results
-trace*
-testout
-cleanup*
-outdir_test
+dir_test
+.DS*
+trace.*
