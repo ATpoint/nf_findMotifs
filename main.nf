@@ -55,7 +55,7 @@ if(params.mode=="single"){
 
     foreground  = Channel
                     .fromPath(params.target, checkIfExists: true)
-                    .map { file -> tuple(file.baseName.split(params.split_at)[0], file) }
+                    .map { file -> tuple(file.baseName, file) }
 
     background  = Channel
                     .fromPath(params.background, checkIfExists: true)
