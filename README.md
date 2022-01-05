@@ -14,14 +14,14 @@ A wrapper around `findMotifs.pl` from Homer to scan fasta files for motif enrich
 
 ## Usage
 
-The workflow is simple. We provide one or multiple fasta files as "target" and one or multiple fasta files as "background". `findMotifs.pl` will scan the target for motif enrichment relative to the background. As reference motif collection the pipeline will download the HOCOMOCO motif collection in Homer format. We hardcoded two options for `params.species`, which are `human` and `mouse`, to download the correct file for the respective species.  
+The workflow is simple. We provide one or multiple fasta files as "target" and one or multiple fasta files as "background". `findMotifs.pl` will scan the target for motif enrichment relative to the background. As reference motif collection the pipeline will download the HOCOMOCO motif collection in Homer format. We hardcoded two options for `params.species`, which are `human` and `mouse`, to download the correct file for the respective species. The params definition works via `schema.nf` using [nf_blank](https://github.com/ATpoint/nf_blank).
 
 Basic command:  
 
 ```bash
 
 #/ scan multiple targets against one background:
-NXF_VER=21.04.3 nextflow run main.nf -profile docker \
+NXF_VER=21.10.6 nextflow run main.nf -profile docker \
     --mode 'single' \
     --species 'mouse' \
     --target "$(realpath test)"'/set*_targets.fa' \
@@ -29,7 +29,7 @@ NXF_VER=21.04.3 nextflow run main.nf -profile docker \
     --outdir 'dir_test'
 
 #/ scan each target against its background file:    
-NXF_VER=21.04.3 nextflow run main.nf -profile docker \
+NXF_VER=21.10.6 nextflow run main.nf -profile docker \
     --mode 'matched' \
     --species 'mouse' \
     --target "$(realpath test)"'/set*_targets.fa' \

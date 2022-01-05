@@ -4,8 +4,12 @@ process findMotifs {
 
     cpus   params.threads
     memory params.mem
-
+    
     publishDir params.outdir, mode: 'move'
+
+    if(workflow.profile.contains('conda'))  { conda "$params.environment" }
+    if(workflow.profile.contains('docker')) { container "$params.container" }
+    if(workflow.profile.contains('singularity')) { container "$params.container" }
 
     input:
     tuple val(sample_id), path(foreground), path(background)

@@ -8,13 +8,8 @@ nextflow.enable.dsl=2
 
 //-----------------------------------------------------------------------
 
-// Check for the required nextflow version,
-// print an introduction message summarizing workflow parameters
-include { checkNfVersion } from './functions/functions'
-include { introMessage } from './functions/functions'
-
-checkNfVersion()
-introMessage()
+// validate params and print summary messages:
+evaluate(new File("${baseDir}/functions/validate_schema_params.nf"))
 
 //-----------------------------------------------------------------------
 
@@ -23,13 +18,9 @@ include { downloadMotifs } from './modules/download_motifs'
 
 if(params.species == "mouse"){
     url_motif = "https://hocomoco11.autosome.ru/final_bundle/hocomoco11/core/MOUSE/mono/HOCOMOCOv11_core_MOUSE_mono_homer_format_0.0005.motif"
-} else {
-    if(params.species == "human"){
-        url_motif = "https://hocomoco11.autosome.ru/final_bundle/hocomoco11/core/HUMAN/mono/HOCOMOCOv11_core_HUMAN_mono_homer_format_0.0005.motif"
-    } else {
-        println("(Error) -- params.species must be <mouse/human>")
-        exit 1
-    }
+}
+if(params.species == "human"){
+    url_motif = "https://hocomoco11.autosome.ru/final_bundle/hocomoco11/core/HUMAN/mono/HOCOMOCOv11_core_HUMAN_mono_homer_format_0.0005.motif"
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -75,4 +66,13 @@ workflow MotifScan {
 
 }
 
-workflow { MotifScan() }
+workflow { 
+
+    MotifScan() 
+    
+    workflow.onComplete {
+        println ""
+        println "Pipeline completed!"
+    }
+    
+}
