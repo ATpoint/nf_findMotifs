@@ -4,6 +4,8 @@ process downloadMotifs {
     memory 1.GB
 
     publishDir params.outdir, mode: 'copy'
+    stageInMode: 'copy'
+    stageOutMode: 'copy'
 
     input:
     val(url)
