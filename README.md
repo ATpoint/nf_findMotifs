@@ -1,6 +1,6 @@
 # nf_findMotifs
 
-A wrapper around `findMotifs.pl` from Homer to scan fasta files for motif enrichments.
+A wrapper around `findMotifs.pl` from [Homer](http://homer.ucsd.edu/homer/motif/) to scan fasta files for motif enrichments.
 
 <br>
 
@@ -14,36 +14,31 @@ A wrapper around `findMotifs.pl` from Homer to scan fasta files for motif enrich
 
 ## Usage
 
-The workflow is simple. We provide one or multiple fasta files as "target" and one or multiple fasta files as "background". `findMotifs.pl` will scan the target for motif enrichment relative to the background. As reference motif collection the pipeline will download the HOCOMOCO motif collection in Homer format. We hardcoded two options for `params.species`, which are `human` and `mouse`, to download the correct file for the respective species. The params definition works via `schema.nf` using [nf_blank](https://github.com/ATpoint/nf_blank).
+Run in either of the two supported modes:
 
-Basic command:  
+1) Use `--mode 'single'` which means that all fasta files provided in `--target` will be scanned against the one fasta file in `--background`.
+2) Use `mode 'matched'` which means every of the target fasta files must have its own background file.
+
+Using either 'human' or 'mouse' in `--species` automatically pulls the respective HOCOMOCO motif file for the analysis.
+
+Use these commands, here using the test data in the `test/` folder of this repository and the provided Docker container:
 
 ```bash
 
 #/ scan multiple targets against one background:
 NXF_VER=21.10.6 nextflow run main.nf -profile docker \
-    --mode 'single' \
-    --species 'mouse' \
-    --target "$(realpath test)"'/set*_targets.fa' \
-    --background "$(realpath test)"'/set1_background.fa' \
+    --mode 'single' --species 'mouse' \
+    --target "$(realpath test)"'/set*_targets.fa' --background "$(realpath test)"'/set1_background.fa' \
     --outdir 'dir_test'
 
 #/ scan each target against its background file:    
 NXF_VER=21.10.6 nextflow run main.nf -profile docker \
-    --mode 'matched' \
-    --species 'mouse' \
-    --target "$(realpath test)"'/set*_targets.fa' \
-    --background "$(realpath test)"'/set*_background.fa' \
+    --mode 'matched' --species 'mouse' \
+    --target "$(realpath test)"'/set*_targets.fa' --background "$(realpath test)"'/set*_background.fa' \
     --outdir 'dir_test'
 
 ```
 
-There are two `--mode` options:
-
-- `matched` means that each single target fasta as its individual background file. In this case the basenames of the target and background files must be identical, e.g. `set1_target.fa` and `set1_background.fa`. The delimiter must be specified with `params.split_at` and is by default an underscore. 
-
-- `single` means that each target will be scanned against the same background. In this case only a single background file must be provided. There is currently no check to enforce this, the user has to ensure it.
-
 ## Output:
 
-The output will be folders in which `findMotifs.pl` stores the results. These will be a concat of the target basename and the background basename, delimited by `__vs__`, e.g. `set1_targets__vs__set1_background`, collected in a directory defined by `params.outdir`. Publishing mode `move` is hardcoded for this pipeline, the hidden `.sh` and `.log` files will be published to the `params.outdir`, so the `work` directory can safely be deleted upon successful run completion.
+The output is a folder with the `findMotifs.pl` results. The folder name is a concat of the target basename and the background basename, delimited by `__vs__`, for example `set1_targets__vs__set1_background` when the files were called `set1_targets.fa` and `set1_background.fa`. The command lines and log files will be copied into that folder as well, so there is no need to keep the `work` directory upon completion.
