@@ -37,8 +37,3 @@ jobs:
       - name: test_docker
         run: |
           NXF_VER=21.10.6 nextflow run main.nf -profile test_single,docker
-
-      - name: test_conda
-        run: |
-          NXF_VER=21.10.6 nextflow run main.nf -profile test_matched,docker
-          
