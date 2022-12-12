@@ -13,7 +13,7 @@ A wrapper around `findMotifs.pl` from [Homer](http://homer.ucsd.edu/homer/motif/
 Run in either of the two supported modes:
 
 1) Use `--mode 'single'` which means that all fasta files provided in `--target` will be scanned against the one fasta file in `--background`.
-2) Use `mode 'matched'` which means every of the target fasta files must have its own background file.
+2) Use `--mode 'matched'` which means every of the target fasta files must have its own background file.
 
 Using either 'human' or 'mouse' in `--species` automatically pulls the respective HOCOMOCO motif file for the analysis.
 
