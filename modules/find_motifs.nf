@@ -6,8 +6,8 @@ process findMotifs {
     memory params.mem
     
     publishDir params.outdir, mode: 'copy'
-    stageInMode: 'copy'
-    stageOutMode: 'copy'
+    stageInMode 'copy'
+    stageOutMode 'copy'
 
     if(workflow.profile.contains('conda'))  { conda "$params.environment" }
     if(workflow.profile.contains('docker')) { container "$params.container" }
